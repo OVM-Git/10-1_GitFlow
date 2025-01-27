@@ -9,8 +9,8 @@ def clear_names(file_name: str) -> list:
                 if symbol.isalpha():
                     new_name += symbol
             if new_name.isalpha():
-                new_names_lict.append(new_name)
-    return new_names_lict
+                new_names_list.append(new_name)
+    return new_names_list
 
 
 if __name__ == '__main__':
