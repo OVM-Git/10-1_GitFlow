@@ -10,7 +10,7 @@ def filter_by_state(data_basu: List[Dict], state: str = 'EXECUTED') -> List[Dict
     :param state: Значение ключа 'state' для фильтрации (по умолчанию 'EXECUTED').
     :return: Отфильтрованный список словарей.
     """
-    return [data_basu for data_basu in data_basu if data_basu.get('state') == state]
+    return [item for item in data_basu if item.get('state') == state]
 
 def sort_by_date(data_basu: List[Dict], reverse: bool = True) -> List[Dict]:
     """
