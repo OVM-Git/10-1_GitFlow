@@ -1,6 +1,6 @@
 import pytest
 
-from your_module import mask_account_card  # Замените your_module на имя вашего файла
+from  src. widget import mask_account_card  # Замените your_module на имя вашего файла
 
 # Параметризованные тесты для разных типов карт и счетов
 @pytest.mark.parametrize(
