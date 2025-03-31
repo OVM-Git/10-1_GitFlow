@@ -1,102 +1,63 @@
-import pytest
-from src.processing import filter_by_state
+import unittest
+from datetime import datetime
+from typing import List, Dict
 
-@pytest.fixture
-def test_data():
-    return [
-        {"id": 1, "state": "new"},
-        {"id": 2, "state": "pending"},
-        {"id": 3, "state": "done"},
-        {"id": 4, "state": "new"},
-        {"id": 5, "state": "failed"},
-        {"id": 6, "state": "pending"},
-        {"id": 7, "state": "done"},
-        {"id": 8, "state": None},
-        {"id": 9},
-    ]
+from src.processing import filter_by_state, sort_by_date
 
-@pytest.mark.parametrize("state,expected_ids", [
-    ("new", [1, 4]),
-    ("pending", [2, 6]),
-    ("done", [3, 7]),
-    ("failed", [5]),
-    ("unknown", []),
-    (None, [8]),
-])
-def test_filter_by_state(test_data, state, expected_ids):
-    """Параметризованный тест для различных состояний"""
-    result = filter_by_state(test_data, state)
-    assert [item["id"] for item in result] == expected_ids
 
-def test_empty_input():
-    assert filter_by_state([], "any") == []
-
-def test_missing_state_key(test_data):
-    result = filter_by_state(test_data, "new")
-    assert all("state" in item for item in result)
-
-    import pytest
-    from src.processing import sort_by_date
-
-    @pytest.fixture
-    def test_data():
-        return [
-            {"id": 1, "date": "2023-05-15"},
-            {"id": 2, "date": "2023-01-20"},
-            {"id": 3, "date": "2023-08-10"},
-            {"id": 4, "date": "2022-12-31"},
-            {"id": 5, "date": "2023-05-15"},  # Та же дата, что у id=1
-            {"id": 6, "date": "2024-01-01"},
+class TestTransactionFunctions(unittest.TestCase):
+    def setUp(self):
+        """Подготовка тестовых данных."""
+        self.test_data = [
+            {'id': 41428829, 'state': 'EXECUTED', 'date': '2019-07-03T18:35:29.512364'},
+            {'id': 939719570, 'state': 'EXECUTED', 'date': '2018-06-30T02:08:58.425572'},
+            {'id': 594226727, 'state': 'CANCELED', 'date': '2018-09-12T21:27:25.241689'},
+            {'id': 615064591, 'state': 'CANCELED', 'date': '2018-10-14T08:21:33.419441'}
         ]
 
-    @pytest.fixture
-    def test_data_various_formats():
-        return [
-            {"id": 1, "date": "15.05.2023"},
-            {"id": 2, "date": "2023/01/20"},
-            {"id": 3, "date": "Aug 10, 2023"},
-            {"id": 4, "date": "31-12-2022"},
-            {"id": 5, "date": "20230515"},
-        ]
+    def test_filter_by_state_executed(self):
+        """Тест фильтрации по state='EXECUTED'."""
+        result = filter_by_state(self.test_data, 'EXECUTED')
+        self.assertEqual(len(result), 2)
+        for item in result:
+            self.assertEqual(item['state'], 'EXECUTED')
 
-    @pytest.mark.parametrize("ascending,expected_ids", [
-        (True, [4, 2, 1, 5, 3, 6]),  # По возрастанию
-        (False, [6, 3, 1, 5, 2, 4]),  # По убыванию
-    ])
-    def test_sort_order(test_data, ascending, expected_ids):
-        """Параметризованный тест для проверки порядка сортировки"""
-        result = sort_by_date(test_data, ascending=ascending)
-        assert [item["id"] for item in result] == expected_ids
+    def test_filter_by_state_canceled(self):
+        """Тест фильтрации по state='CANCELED'."""
+        result = filter_by_state(self.test_data, 'CANCELED')
+        self.assertEqual(len(result), 2)
+        for item in result:
+            self.assertEqual(item['state'], 'CANCELED')
 
-    def test_duplicate_dates_order(test_data):
-        """Проверка порядка элементов с одинаковыми датами"""
-        result = sort_by_date(test_data, ascending=True)
-        ids = [item["id"] for item in result]
+    def test_filter_by_state_default(self):
+        """Тест фильтрации со значением по умолчанию (EXECUTED)."""
+        result = filter_by_state(self.test_data)
+        self.assertEqual(len(result), 2)
+        for item in result:
+            self.assertEqual(item['state'], 'EXECUTED')
 
-        # Проверяем, что id=1 идет перед id=5 (исходный порядок сохранен)
-        assert ids.index(1) < ids.index(5)
+    def test_filter_by_state_empty(self):
+        """Тест фильтрации пустого списка."""
+        result = filter_by_state([])
+        self.assertEqual(result, [])
 
-    def test_various_date_formats(test_data_various_formats):
-        """Проверка работы с различными форматами дат"""
-        result = sort_by_date(test_data_various_formats, ascending=True)
-        assert [item["id"] for item in result] == [4, 2, 1, 3, 5]
+    def test_sort_by_date_descending(self):
+        """Тест сортировки по дате (по убыванию)."""
+        result = sort_by_date(self.test_data, reverse=True)
+        dates = [datetime.fromisoformat(item['date']) for item in result]
+        self.assertTrue(all(dates[i] >= dates[i+1] for i in range(len(dates)-1)))
 
-    def test_empty_list():
-        """Проверка работы с пустым списком"""
-        assert sort_by_date([], ascending=True) == []
+    def test_sort_by_date_ascending(self):
+        """Тест сортировки по дате (по возрастанию)."""
+        result = sort_by_date(self.test_data, reverse=False)
+        dates = [datetime.fromisoformat(item['date']) for item in result]
+        self.assertTrue(all(dates[i] <= dates[i+1] for i in range(len(dates)-1)))
 
-    def test_missing_date_key(test_data):
-        """Проверка обработки элементов без ключа date"""
-        test_data.append({"id": 7})  # Элемент без даты
-        with pytest.raises(KeyError):
-            sort_by_date(test_data, ascending=True)
+    def test_sort_by_date_empty(self):
+        """Тест сортировки пустого списка."""
+        result = sort_by_date([])
+        self.assertEqual(result, [])
 
-    @pytest.mark.parametrize("invalid_data", [
-        [{"id": 1, "date": "invalid-date"}],
-        [{"id": 1, "date": "2023-13-01"}],  # Несуществующая дата
-        [{"id": 1, "date": None}],  # None вместо даты
-    ])
-    def test_invalid_date_formats(invalid_data):
-        """Параметризованный тест для некорректных форматов дат"""
-        with pytest.raises(ValueError):
-            sort_by_date(invalid_data, ascending=True)
+
+if __name__ == '__main__':
+    unittest.main()
