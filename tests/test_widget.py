@@ -1,77 +1,36 @@
-import unittest
+import pytest
 from datetime import datetime
-from unittest.mock import patch
-
-# Тестируемые функции
-def mask_account_card(info: str) -> str:
-    parts = info.split()
-    type_info = ' '.join(parts[:-1])
-    number_info = parts[-1]
-
-    if 'Счет' in type_info:
-        return f"{type_info} **{number_info[-4:]}"
-    else:
-        return f"{type_info} {number_info[:4]} {number_info[4:6]}** **** {number_info[-4:]}"
+from src. widget import mask_account_card, get_date  # Замените your_module на имя вашего модуля
 
 
-def get_date(date_str):
-    date_obj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f")
-    return date_obj.strftime("%d.%m.%Y")
+# Тесты для функции mask_account_card
+@pytest.mark.parametrize("input_info, expected", [
+    ("Счет 1234567890123456", "Счет **3456"),
+    ("Visa Platinum 1234567890123456", "Visa Platinum 1234 56** **** 3456"),
+    ("Maestro 1234567890123456", "Maestro 1234 56** **** 3456"),
+    ("МИР 1234567890123456", "МИР 1234 56** **** 3456"),
+    ("Счет 1234", "Счет **1234"),  # Крайний случай - короткий номер счета
+    ("Карта 1234567890123456", "Карта 1234 56** **** 3456"),  # Неизвестный тип карты
+    ("Просто строка без номера", "Просто строка без номера"),  # Нет номера для маскирования
+])
+def test_mask_account_card(input_info, expected):
+    assert mask_account_card(input_info) == expected
 
 
-class TestMaskAccountCard(unittest.TestCase):
-    def test_mask_account(self):
-        """Тест маскировки номера счета"""
-        self.assertEqual(
-            mask_account_card("Счет 1234567890123456"),
-            "Счет **3456"
-        )
-
-    def test_mask_visa_card(self):
-        """Тест маскировки Visa карты"""
-        self.assertEqual(
-            mask_account_card("Visa Platinum 1234567890123456"),
-            "Visa Platinum 1234 56** **** 3456"
-        )
-
-    def test_mask_mastercard(self):
-        """Тест маскировки Mastercard"""
-        self.assertEqual(
-            mask_account_card("MasterCard 1234567890123456"),
-            "MasterCard 1234 56** **** 3456"
-        )
-
-    def test_empty_input(self):
-        """Тест пустой строки на входе"""
-        with self.assertRaises(IndexError):
-            mask_account_card("")
+# Тесты для функции get_date
+@pytest.mark.parametrize("input_date, expected", [
+    ("2023-05-15T10:30:00", datetime(2023, 5, 15, 10, 30, 0)),
+    ("2020-12-31T23:59:59", datetime(2020, 12, 31, 23, 59, 59)),
+    ("2018-01-01T00:00:00", datetime(2018, 1, 1, 0, 0, 0)),
+])
+def test_get_date_valid(input_date, expected):
+    assert get_date(input_date) == expected
 
 
-class TestGetDate(unittest.TestCase):
-    def test_valid_date(self):
-        """Тест корректного преобразования даты"""
-        self.assertEqual(
-            get_date("2023-04-15T12:30:45.123456"),
-            "15.04.2023"
-        )
-
-    def test_invalid_date_format(self):
-        """Тест некорректного формата даты"""
-        with self.assertRaises(ValueError):
-            get_date("2023/04/15 12:30:45")
-
-    def test_empty_date(self):
-        """Тест пустой строки даты"""
-        with self.assertRaises(ValueError):
-            get_date("")
-
-    def test_edge_case_date(self):
-        """Тест граничного значения даты"""
-        self.assertEqual(
-            get_date("0001-01-01T00:00:00.000000"),
-            "01.01.0001"
-        )
-
-
-if __name__ == '__main__':
-    unittest.main()
+def test_get_date_invalid():
+    with pytest.raises(ValueError):
+        get_date("неправильная дата")
+    with pytest.raises(ValueError):
+        get_date("2023-13-01T00:00:00")  # Несуществующий месяц
+    with pytest.raises(ValueError):
+        get_date("2023-02-30T00:00:00")  # Несуществующий день
