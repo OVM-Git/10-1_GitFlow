@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from src. widget import mask_account_card, get_date  # Замените your_module на имя вашего модуля
+from src.widget import mask_account_card, get_date  # Замените your_module на имя вашего модуля
 
 
 # Тесты для функции mask_account_card

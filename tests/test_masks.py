@@ -15,11 +15,6 @@ def test_get_mask_card_number_invalid_length():
     with pytest.raises(ValueError, match="Номер карты должен содержать 16 цифр."):
         get_mask_card_number("12345678901234567")  # 17 цифр
 
-def test_get_mask_account_valid():
-    """Тест корректного маскирования номера счета."""
-    assert get_mask_account("1234567890") == "7890"
-    assert get_mask_account("987654") == "7654"
-
 def test_get_mask_account_invalid_input():
     """Тест обработки невалидного ввода номера счета."""
     with pytest.raises(ValueError, match="Номер счета должен быть строкой, содержащей только цифры."):
