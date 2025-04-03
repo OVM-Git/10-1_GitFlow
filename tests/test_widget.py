@@ -18,12 +18,11 @@ def test_mask_account_card(input_info, expected):
 
 # Тесты для функции get_date
 @pytest.mark.parametrize("input_date, expected", [
-    ("2023-05-15T10:30:00", datetime(2023, 5, 15, 10, 30, 0)),
-    ("2020-12-31T23:59:59", datetime(2020, 12, 31, 23, 59, 59)),
-    ("2018-01-01T00:00:00", datetime(2018, 1, 1, 0, 0, 0)),
+    ("2023-01-01T00:00:00", "01.01.2023"),
+    ("2022-12-31T23:59:59", "31.12.2022"),
 ])
 def test_get_date_valid(input_date, expected):
-    assert get_date(input_date) == expected
+    assert get_date(input_date) == expected  # Теперь проверяет строк
 
 
 def test_get_date_invalid():

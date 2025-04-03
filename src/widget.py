@@ -21,5 +21,5 @@ def mask_account_card(info: str) -> str:
 from datetime import datetime
 
 def get_date(date_str):
-    # Преобразование строки в объект datetime и возврат его
-    return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+    date_obj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+    return date_obj.strftime("%d.%m.%Y")  # Возвращает строку "DD.MM.YYYY"
