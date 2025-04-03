@@ -5,8 +5,8 @@ from src.masks import get_mask_card_number, get_mask_account
 
 def test_get_mask_card_number_valid():
     """Тест корректного маскирования номера карты."""
-    assert get_mask_card_number("1234567890123456") == "1234 56  3456"
-    assert get_mask_card_number("1234 5678 9012 3456") == "1234 56  3456"
+    assert get_mask_card_number("1234567890123456") == "1234 56** **** 3456"
+    assert get_mask_card_number("1234 5678 9012 3456") == "1234 56** **** 3456"
 
 def test_get_mask_card_number_invalid_length():
     """Тест обработки номера карты с некорректной длиной."""
